@@ -19,3 +19,4 @@ This is a simple maven project.
 * Single method / no classes
 * No tests (see 'single method...')
 * Doesn't handle multi-line values
+* Doesn't handle '~' expansion to the user's home drive
