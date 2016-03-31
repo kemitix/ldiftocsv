@@ -16,7 +16,7 @@ This is a simple maven project.
 
 ## Known Limitations
 
-* Single method / no classes
-* No tests (see 'single method...')
+* No classes
+* No tests (see 'no classes...')
 * Doesn't handle multi-line values
 * Doesn't handle '~' expansion to the user's home drive

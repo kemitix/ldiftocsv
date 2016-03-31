@@ -17,13 +17,19 @@ import java.util.stream.Collectors;
  * <p>
  * Read an LDIF file named on the command line and outputs it as a CSV file to
  * STDOUT.
- * <p>
- * Known Limitation: does not handle '~' expansion
  *
  * @author pcampbell
  */
-@SuppressWarnings("hideutilityclassconstructor")
-public class App {
+public final class App {
+
+    private final List<String> lines;
+
+    private final List<Map<String, String>> entries;
+
+    private App() {
+        lines = new ArrayList<>();
+        entries = new ArrayList<>();
+    }
 
     /**
      * Main method.
@@ -36,8 +42,15 @@ public class App {
             System.err.println("LDIF filename is missing!");
             System.exit(-1);
         }
-        // load file(s)
-        final List<String> lines = new ArrayList<>();
+        final App app = new App();
+        app.loadFiles(args);
+        // TODO : merge data lines (have leading spaces) with the previous line
+        app.parseLines();
+        app.writeCSV();
+    }
+
+    // load file(s)
+    private void loadFiles(final String[] args) {
         for (String filename : args) {
             final Path path = Paths.get(filename).toAbsolutePath();
             System.err.println("Reading: " + path);
@@ -49,13 +62,15 @@ public class App {
                 System.exit(-1);
             }
         }
-        // TODO : merge data lines (have leading spaces) with the previous line
-        // parse lines into key/value pairs grouped into entries
-        final List<Map<String, String>> entries = new ArrayList<>();
+    }
+
+    // parse lines into key/value pairs grouped into entries
+    private void parseLines() {
         final Map<String, String> entry = new HashMap<>();
         lines.stream()
-             .filter(line -> !line.matches("^#.*"))
-             .filter(line -> line.matches("^.*?: .*"))
+             .filter(line -> !line.matches("^#.*")) // strip comments
+             .filter(line -> line.matches("^.*?: .*")) // match data lines
+             // TODO : also include extended data lines
              .forEach(line -> {
                  final String[] split = line.split("\\: ", 2);
                  final String key = split[0];
@@ -65,14 +80,17 @@ public class App {
                          entries.add(new HashMap<>(entry));
                          entry.clear();
                      }
-                     entry.put("dn", value);
+                     entry.put("dn", q(value));
                  } else if (entry.containsKey("dn")) {
-                     entry.put(key, value);
+                     entry.put(key, q(value));
                  }
              });
         entries.add(new HashMap<>(entry));
+    }
+
+    private void writeCSV() {
+        final Set<String> keys = new HashSet<>();
         // find all the keys used
-        Set<String> keys = new HashSet<>();
         entries.stream()
                .flatMap(map -> map.entrySet().stream())
                .map(Map.Entry::getKey)
@@ -86,6 +104,10 @@ public class App {
                .map(e -> e.collect(Collectors.toList()))
                .map(e -> String.join(",", e))
                .forEach(System.out::println);
+    }
+
+    private String q(final String value) {
+        return "\"" + value + "\"";
     }
 
 }
