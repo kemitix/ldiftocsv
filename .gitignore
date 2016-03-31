@@ -1,0 +1,10 @@
+/target/
+/nbactions.xml
+/.idea/libraries/
+/.idea/workspace.xml
+/.idea/uiDesigner.xml
+/.idea/compiler.xml
+/.idea/misc.xml
+/*.iml
+/nbproject/
+
